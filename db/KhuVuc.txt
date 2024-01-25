@@ -1,0 +1,20 @@
+drop index if exists KHU_VUC.KHU_VUC_PK;
+
+drop table if exists KHU_VUC;
+
+/*==============================================================*/
+/* Table: KHU_VUC                                               */
+/*==============================================================*/
+create or replace table KHU_VUC 
+(
+   KV_MAKV              char(3)                        not null,
+   KV_TENKHUVUC         varchar(30)                    null,
+   constraint PK_KHU_VUC primary key clustered (KV_MAKV)
+);
+
+/*==============================================================*/
+/* Index: KHU_VUC_PK                                            */
+/*==============================================================*/
+create unique clustered index KHU_VUC_PK on KHU_VUC (
+KV_MAKV ASC
+);

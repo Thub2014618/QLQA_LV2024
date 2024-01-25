@@ -1,0 +1,60 @@
+if exists(select 1 from sys.sysforeignkey where role='FK_CHI_TIET_QUYEN_CUA_QUYEN') then
+    alter table CHI_TIET_QUYEN
+       delete foreign key FK_CHI_TIET_QUYEN_CUA_QUYEN
+end if;
+
+if exists(select 1 from sys.sysforeignkey where role='FK_CHI_TIET_VAITRO_QU_VAI_TRO') then
+    alter table CHI_TIET_QUYEN
+       delete foreign key FK_CHI_TIET_VAITRO_QU_VAI_TRO
+end if;
+
+drop index if exists CHI_TIET_QUYEN.QUYEN_CUA_VAITRO_FK;
+
+drop index if exists CHI_TIET_QUYEN.VAITRO_QUYEN_FK;
+
+drop index if exists CHI_TIET_QUYEN.CHI_TIET_QUYEN_PK;
+
+drop table if exists CHI_TIET_QUYEN;
+
+/*==============================================================*/
+/* Table: CHI_TIET_QUYEN                                        */
+/*==============================================================*/
+create or replace table CHI_TIET_QUYEN 
+(
+   CTQ_MA               char(3)                        not null,
+   VT_MA                char(3)                        not null,
+   constraint PK_CHI_TIET_QUYEN primary key clustered (CTQ_MA)
+);
+
+/*==============================================================*/
+/* Index: CHI_TIET_QUYEN_PK                                     */
+/*==============================================================*/
+create unique clustered index CHI_TIET_QUYEN_PK on CHI_TIET_QUYEN (
+CTQ_MA ASC
+);
+
+/*==============================================================*/
+/* Index: VAITRO_QUYEN_FK                                       */
+/*==============================================================*/
+create index VAITRO_QUYEN_FK on CHI_TIET_QUYEN (
+VT_MA ASC
+);
+
+/*==============================================================*/
+/* Index: QUYEN_CUA_VAITRO_FK                                   */
+/*==============================================================*/
+create index QUYEN_CUA_VAITRO_FK on CHI_TIET_QUYEN (
+
+);
+
+alter table CHI_TIET_QUYEN
+   add constraint FK_CHI_TIET_QUYEN_CUA_QUYEN foreign key ()
+      references QUYEN
+      on update restrict
+      on delete restrict;
+
+alter table CHI_TIET_QUYEN
+   add constraint FK_CHI_TIET_VAITRO_QU_VAI_TRO foreign key (VT_MA)
+      references VAI_TRO (VT_MA)
+      on update restrict
+      on delete restrict;

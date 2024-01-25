@@ -1,0 +1,10 @@
+drop table if exists QUYEN;
+
+/*==============================================================*/
+/* Table: QUYEN                                                 */
+/*==============================================================*/
+create or replace table QUYEN 
+(
+   Q_MA                 char(3)                        null,
+   Q_TENQUYEN           varchar(200)                   null
+);

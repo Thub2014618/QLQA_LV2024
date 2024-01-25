@@ -1,0 +1,20 @@
+drop index if exists VAI_TRO.VAI_TRO_PK;
+
+drop table if exists VAI_TRO;
+
+/*==============================================================*/
+/* Table: VAI_TRO                                               */
+/*==============================================================*/
+create or replace table VAI_TRO 
+(
+   VT_MA                char(3)                        not null,
+   VT_TENCHUCVU         varchar(30)                    null,
+   constraint PK_VAI_TRO primary key clustered (VT_MA)
+);
+
+/*==============================================================*/
+/* Index: VAI_TRO_PK                                            */
+/*==============================================================*/
+create unique clustered index VAI_TRO_PK on VAI_TRO (
+VT_MA ASC
+);

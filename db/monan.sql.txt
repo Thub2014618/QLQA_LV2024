@@ -1,0 +1,43 @@
+if exists(select 1 from sys.sysforeignkey where role='FK_MON_AN_DANHMUC_M_DANH_MUC') then
+    alter table MON_AN
+       delete foreign key FK_MON_AN_DANHMUC_M_DANH_MUC
+end if;
+
+drop index if exists MON_AN.DANHMUC_MON_FK;
+
+drop index if exists MON_AN.MON_AN_PK;
+
+drop table if exists MON_AN;
+
+/*==============================================================*/
+/* Table: MON_AN                                                */
+/*==============================================================*/
+create or replace table MON_AN 
+(
+   MA_MA                char(3)                        not null,
+   DM_MA                char(3)                        not null,
+   MA_TEN               varchar(50)                    null,
+   MA_MOTA              long varchar                   null,
+   MA_TRANGTHAICHEBIEN  integer                        null,
+   constraint PK_MON_AN primary key clustered (MA_MA)
+);
+
+/*==============================================================*/
+/* Index: MON_AN_PK                                             */
+/*==============================================================*/
+create unique clustered index MON_AN_PK on MON_AN (
+MA_MA ASC
+);
+
+/*==============================================================*/
+/* Index: DANHMUC_MON_FK                                        */
+/*==============================================================*/
+create index DANHMUC_MON_FK on MON_AN (
+DM_MA ASC
+);
+
+alter table MON_AN
+   add constraint FK_MON_AN_DANHMUC_M_DANH_MUC foreign key (DM_MA)
+      references DANH_MUC (DM_MA)
+      on update restrict
+      on delete restrict;

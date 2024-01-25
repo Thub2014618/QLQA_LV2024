@@ -1,0 +1,44 @@
+if exists(select 1 from sys.sysforeignkey where role='FK_BAN_AN_KHUVUC_BA_KHU_VUC') then
+    alter table BAN_AN
+       delete foreign key FK_BAN_AN_KHUVUC_BA_KHU_VUC
+end if;
+
+drop index if exists BAN_AN.KHUVUC_BAN_FK;
+
+drop index if exists BAN_AN.BAN_AN_PK;
+
+drop table if exists BAN_AN;
+
+/*==============================================================*/
+/* Table: BAN_AN                                                */
+/*==============================================================*/
+create or replace table BAN_AN 
+(
+   B_MABA               char(3)                        not null,
+   KV_MAKV              char(3)                        not null,
+   B_STT                integer                        null,
+   B_LOAIBAN            varchar(30)                    null,
+   B_SOCHONGOI          integer                        null,
+   B_TRANGTHAISUDUNG    integer                        null,
+   constraint PK_BAN_AN primary key clustered (B_MABA)
+);
+
+/*==============================================================*/
+/* Index: BAN_AN_PK                                             */
+/*==============================================================*/
+create unique clustered index BAN_AN_PK on BAN_AN (
+B_MABA ASC
+);
+
+/*==============================================================*/
+/* Index: KHUVUC_BAN_FK                                         */
+/*==============================================================*/
+create index KHUVUC_BAN_FK on BAN_AN (
+KV_MAKV ASC
+);
+
+alter table BAN_AN
+   add constraint FK_BAN_AN_KHUVUC_BA_KHU_VUC foreign key (KV_MAKV)
+      references KHU_VUC (KV_MAKV)
+      on update restrict
+      on delete restrict;
