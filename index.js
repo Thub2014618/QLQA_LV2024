@@ -12,9 +12,6 @@ app.use(express.json());
 
 app.use("/api/admin", adminsRouter);
 
-app.get('/',(req, res) => {
-  res.json("home")
-});
 
 app.use((req, res, next) => {
   return next(new ApiError(404, "Resource not found"));
@@ -31,6 +28,5 @@ console.log("Connected to the database!");
 const PORT = config.app.port;
 app.listen(PORT, () => {
   console.log(`Ứng dụng đang chạy trên cổng ${PORT} http://localhost:${PORT}
-    .. http://localhost:${PORT}/api/admin
   `);
 });
