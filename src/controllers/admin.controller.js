@@ -1,5 +1,22 @@
 const config = require("../configs/index");
 
+exports.loginAdmin = async (req, res, next) => {
+  try {
+      const { username, password }  = req.body; 
+
+      console.log(username, password);
+
+      if ( username == "admin" && password == "123456") {
+          return res.send({ message: "đăng nhập thành công!"});
+      } else {
+          return res.status(401).send({ message: "Tài khoản hoặc mật khẩu không chính xác" });
+      }
+  } catch (error) {
+      console.error(error);
+      res.status(500).send({ message: "Lỗi đăng nhập !" });
+  }
+};
+
 
 
 exports.getQuyen = async (req, res, next) => {
@@ -30,6 +47,8 @@ exports.createQuyen = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+
 
 exports.updateQuyen = async (req, res, next) => {
   try {
@@ -210,6 +229,10 @@ exports.deleteCTQ = async (req, res, next) => {
 };
 
 
+
+
+
+
 //****************** nhan vien ********************************
 
 
@@ -227,6 +250,8 @@ exports.getNhanVien = async (req, res, next) => {
       res.status(500).send({ message: error.message });
   }
 };
+
+
 
 exports.createNhanVien = async (req, res, next) => {
   try {
@@ -282,6 +307,80 @@ exports.deleteNhanVien = async (req, res, next) => {
   }
 };
 
+//**************************CaLam********************************* */
+
+
+exports.getCaLam = async (req, res, next) => {
+  try {
+      const connection = await config.db.connect();
+      if (!connection) {
+          throw new Error("Lỗi kết nối cơ sở dữ liệu");
+      }
+      const query = "SELECT * FROM qlqa.ca_lam";
+      const [rows] = await connection.promise().query(query);
+      res.send(rows);
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).send({ message: error.message });
+  }
+};
+
+exports.createCaLam = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) {
+      throw new Error("Lỗi kết nối cơ sở dữ liệu");
+    }
+    if (!req.body) {
+      throw new Error("Dữ liệu không được trống");
+    }
+
+    const dt = req.body;
+    console.log(dt);
+    const query = "INSERT INTO qlqa.ca_lam SET ?";
+    await connection.promise().query(query, dt);
+    res.status(201).send({ message: "Thêm nhân viên thành công" });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+// ***********************************************Lich làm việc **********************************
+
+exports.getLichLam = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+    const query = `SELECT n.*, c.N_NGAYLAM, c.CL_MA
+                    FROM qlqa.chi_tiet_ca c
+                    JOIN qlqa.Nhan_vien n ON c.NV_MA = n.NV_MA;`;
+    [rows] = await connection.promise().query(query);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.getLich_NhanVien= async (req, res, next) => {
+  try {
+      const connection = await config.db.connect();
+      if (!connection) {
+          throw new Error("Lỗi kết nối cơ sở dữ liệu");
+      }
+      dt = req.params.id;
+      const query = "SELECT * FROM qlqa.chi_tiet_ca where NV_MA = ?";
+      const [rows] = await connection.promise().query(query,[dt]);
+      res.send(rows);
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).send({ message: error.message });
+  }
+};
+
+
 
 // ****************************************************** MON AN ************************************************************
 
@@ -292,7 +391,7 @@ exports.getMonAn = async (req, res, next) => {
       if (!connection) {
           throw new Error("Lỗi kết nối cơ sở dữ liệu");
       }
-      const query = "SELECT * FROM qlqa.mon_an";
+      const query = 'SELECT ma.*, g.G_GIA FROM qlqa.mon_an ma, qlqa.gia g where g.MA_MA = ma.ma_ma';
       const [rows] = await connection.promise().query(query);
       res.send(rows);
   } catch (error) {
@@ -578,6 +677,43 @@ exports.deleteDanhMuc = async (req, res, next) => {
 
 
 // ********************************************************* HOA DON *****************************************************
+exports.checkTTHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+    const bma = req.params.id;
+    const query = `
+      SELECT hd.HD_MA 
+      FROM ban_an b
+      JOIN hoa_don hd ON hd.B_MA = b.B_MA
+      WHERE hd.HD_Trangthai = 0 AND b.b_ma = ?;
+    `;
+    const [rows] = await connection.promise().query(query, [bma]);
+
+    res.send(rows.length > 0);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+
+exports.onHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    // Truy vấn để cập nhật trạng thái bàn thành 0
+    bma = req.params.id;
+    const updateQuery = "UPDATE qlqa.hoa_don SET HD_trangthai = 1 where HD_ma = ?";
+
+    await connection.promise().query(updateQuery, [bma]);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
 
 
 exports.getHoaDon = async (req, res, next) => {
@@ -585,7 +721,7 @@ exports.getHoaDon = async (req, res, next) => {
     const connection = await config.db.connect();
     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
 
-    const query = "select * from hoa_don hd join chi_tiet_hoa_don cthd on hd.hd_ma = cthd.hd_ma;";
+    const query = "select * from hoa_don hd join chi_tiet_hoa_don cthd on hd.hd_ma = cthd.hd_ma";
     
 
     const [rows] = await connection.promise().query(query);
@@ -598,6 +734,90 @@ exports.getHoaDon = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+exports.getMAHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const query = 'SELECT * FROM hoa_don';
+    const [rows] = await connection.promise().query(query);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.getHD_mab = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const hd = req.params.id;
+    console.log( hd )
+    const query = 
+      `select a.*,   b.HD_MA , d.*  from chi_tiet_hoa_don a, hoa_don b, ban_an c, mon_an d
+      where a.hd_ma = b.hd_ma and b.hd_trangthai = 1 and a.ma_ma = d.ma_ma
+      and c.b_ma= b.b_ma and c.b_ma = ? ;
+      `
+    const [rows] = await connection.promise().query(query,[hd]);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.getInforHD_mab = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const b_ma = req.params.id;
+    console.log( b_ma )
+    const query = 
+      `select h.*  from  hoa_don h, ban_an b where
+      h.hd_trangthai = 1 and b.b_ma = h.b_ma 
+      and b.b_ma = ?;
+      `
+    const [rows] = await connection.promise().query(query,[b_ma]);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.getCTHD_mahd = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const hd = req.params.id;
+
+    console.log( hd )
+    const query = 
+
+      `SELECT cthd.*, hd.*, ma.MA_TEN
+      FROM chi_tiet_hoa_don cthd
+      JOIN hoa_don hd ON hd.hd_ma = cthd.hd_ma
+      JOIN mon_an ma ON ma.Ma_MA = cthd.ma_ma
+      WHERE cthd.hd_ma = ? ;
+      `
+    const [rows] = await connection.promise().query(query,[hd]);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+
 
 exports.createHoaDon = async (req, res, next) => {
   try {
@@ -612,13 +832,22 @@ exports.createHoaDon = async (req, res, next) => {
     const dt = req.body;
     console.log(dt);
     const query = "INSERT INTO qlqa.hoa_don SET ?";
-    await connection.promise().query(query, dt);
-    res.status(201).send({ message: "Thêm hoa don thành công" });
+    const result = await connection.promise().query(query, [dt]);
+
+    // Lấy ID của hóa đơn vừa được chèn
+    const insertedId = result[0].insertId;
+
+    // Lấy thông tin của hóa đơn vừa được chèn
+    const [rows] = await connection.promise().query("SELECT * FROM qlqa.hoa_don WHERE HD_MA = ?", [insertedId]);
+
+    // Gửi thông tin hóa đơn vừa được chèn trong phản hồi
+    res.send(rows[0]);
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ message: error.message });
   }
 };
+
 
 
 exports.updateHoaDon = async (req, res, next) => {
@@ -690,16 +919,80 @@ exports.getCTHD = async (req, res, next) => {
   }
 };
 
+// exports.createCTHD = async (req, res, next) => {
+//   try {
+//     const connection = await config.db.connect();
+//     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+//     const dt = req.body;
+//     console.log(dt);
+//     const query = "INSERT INTO qlqa.chi_tiet_hoa_don SET ?";
+//     await connection.promise().query(query, dt );
+
+//     res.send({ message: 'Record added successfully' });
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).send({ message: error.message });
+//   }
+// };
 exports.createCTHD = async (req, res, next) => {
   try {
     const connection = await config.db.connect();
     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
-    const dt = req.body;
-    console.log(dt);
-    const query = "INSERT INTO qlqa.chi_tiet_hoa_don SET ?";
-    await connection.promise().query(query, dt );
+
+    const items = req.body;
+    console.log(items)
+    // Duyệt qua mỗi đối tượng trong mảng và thêm vào cơ sở dữ liệu
+
+    const hd = items.inforbill.HD_MA
+    for (let item of items.bill) {
+      const dt = {
+        HD_MA: hd,
+        MA_MA: item.MA_MA,
+        CTHD_SOLUONG: item.CTHD_SOLUONG,
+        CTHD_GIA: item.G_GIA,
+        CTHD_TRANGTHAI: 1,
+        }
+      console.log(dt)
+
+      const query = "INSERT INTO qlqa.chi_tiet_hoa_don SET ?";
+      await connection.promise().query(query, dt);
+    }
 
     res.send({ message: 'Record added successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+
+
+// exports.updateCTHD = async (req, res, next) => {
+//   try {
+//     const connection = await config.db.connect();
+//     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+//     const CTHD_MA = req.params.id;
+//     const {  HD_MA, MA_MA, CTHD_SOLUONG, CTHD_GIA, CTHD_TRANGTHAI, CTHD_GHICHU } = req.body;
+//     const query = `UPDATE qlqa.chi_tiet_hoa_don SET HD_MA = ?, MA_MA = ?, CTHD_SOLUONG = ?, CTHD_GIA = ?, CTHD_TRANGTHAI = ?, CTHD_GHICHU = ? WHERE CTHD_MA = ?`;
+//     await connection.promise().query(query, [HD_MA, MA_MA, CTHD_SOLUONG, CTHD_GIA, CTHD_TRANGTHAI, CTHD_GHICHU, CTHD_MA]);
+
+//     res.send({ message: 'Record updated successfully' });
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).send({ message: error.message });
+//   }
+// };
+exports.deleteAllCTHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const CTHD_MA = req.params.id;
+    const query = `DELETE FROM qlqa.chi_tiet_hoa_don`;
+    await connection.promise().query(query, [CTHD_MA]);
+
+    res.send({ message: 'Record deleted successfully' });
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ message: error.message });
@@ -711,10 +1004,26 @@ exports.updateCTHD = async (req, res, next) => {
     const connection = await config.db.connect();
     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
 
-    const CTHD_MA = req.params.id;
-    const {  HD_MA, MA_MA, CTHD_SOLUONG, CTHD_GIA, CTHD_TRANGTHAI, CTHD_GHICHU } = req.body;
-    const query = `UPDATE qlqa.chi_tiet_hoa_don SET HD_MA = ?, MA_MA = ?, CTHD_SOLUONG = ?, CTHD_GIA = ?, CTHD_TRANGTHAI = ?, CTHD_GHICHU = ? WHERE CTHD_MA = ?`;
-    await connection.promise().query(query, [HD_MA, MA_MA, CTHD_SOLUONG, CTHD_GIA, CTHD_TRANGTHAI, CTHD_GHICHU, CTHD_MA]);
+    const items = req.body;
+    const hd_ma = items.inforbill[0].HD_MA;
+    console.log('hd:', hd_ma)
+    console.log('items:', items.bill)
+
+    const query = "DELETE FROM qlqa.chi_tiet_hoa_don WHERE HD_MA = ?";
+    await connection.promise().query(query, [hd_ma]);
+
+    for (let item of items.bill) {
+      const dt = {
+        MA_MA: item.MA_MA,
+        CTHD_SOLUONG: item.CTHD_SOLUONG,
+        CTHD_GIA: item.CTHD_GIA,
+        CTHD_TRANGTHAI: 1,
+      }
+      console.log('dt:', dt)
+      const query1 = "INSERT INTO qlqa.chi_tiet_hoa_don SET HD_MA = ?, CTHD_SOLUONG = ?, CTHD_GIA = ?, CTHD_TRANGTHAI = ?, MA_MA = ? ";
+      await connection.promise().query(query1, [hd_ma, dt.CTHD_SOLUONG, dt.CTHD_GIA, dt.CTHD_TRANGTHAI, dt.MA_MA]);
+      
+    }
 
     res.send({ message: 'Record updated successfully' });
   } catch (error) {
@@ -740,8 +1049,146 @@ exports.deleteCTHD = async (req, res, next) => {
 };
 
 
+// ******************************** KHU VUC ********************
+
+
+
+
+exports.getKhuVuc = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+    const query = "SELECT * FROM qlqa.khu_vuc";
+
+    const [rows] = await connection.promise().query(query);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+exports.createKhuVuc = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const dt = req.body;
+    console.log("chào ",dt)
+    const query = "INSERT INTO qlqa.khu_vuc SET ?";
+    await connection.promise().query(query,dt);
+
+    res.send({ message: 'Record added successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.updateKhuVuc = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const  B_MA = req.params.id
+    const { B_STT, B_LOAIBAN, B_SOCHONGOI, B_TRANGTHAISUDUNG } = req.body;
+    const query = `UPDATE qlqa.ban_an SET B_STT = ?, B_LOAIBAN = ?, B_SOCHONGOI = ?, B_TRANGTHAISUDUNG = ? WHERE B_MA = ?`;
+    await connection.promise().query(query, [B_STT, B_LOAIBAN, B_SOCHONGOI, B_TRANGTHAISUDUNG, B_MA]);
+
+    res.send({ message: 'Record updated successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.deleteKhuVuc = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    KV_MA = req.params.id;
+    const query = `DELETE FROM qlqa.khu_vuc WHERE KV_MA = ?`;
+    await connection.promise().query(query, [KV_MA]);
+
+    res.send({ message: 'Record deleted successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+
+
+
 // ********************************** BAN AN ************************************
 
+
+exports.offHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+    bma = req.params.id;
+    const updateQuery = "UPDATE qlqa.hoa_don SET HD_trangthai = 0 where B_MA = ?";
+    await connection.promise().query(updateQuery,[bma]);
+    const query = "SELECT * FROM qlqa.hoa_don where B_MA = ?";
+    const [rows] = await connection.promise().query(query, [bma]);
+
+    res.send(rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.offCTHD = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    const CTHD_MA = req.params.id;
+    const updateQuery = "UPDATE qlqa.chi_tiet_hoa_don SET CTHD_trangthai = 0 WHERE CTHD_MA = ?";
+    await connection.promise().query(updateQuery, [CTHD_MA]);
+
+    res.status(200).send({ message: 'Record updated successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.onTTBan = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    // Truy vấn để cập nhật trạng thái bàn thành 0
+    bma = req.params.id;
+    const updateQuery = "UPDATE qlqa.ban_an SET B_trangthaisudung = 1 where B_MA = ?";
+
+    await connection.promise().query(updateQuery, [bma]);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
+exports.offTTBan = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    // Truy vấn để cập nhật trạng thái bàn thành 0
+    bma = req.params.id;
+    const updateQuery = "UPDATE qlqa.ban_an SET B_trangthaisudung = 0 where B_MA = ?";
+
+    await connection.promise().query(updateQuery, [bma]);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
 
 exports.getBanAn = async (req, res, next) => {
   try {
@@ -760,6 +1207,21 @@ exports.getBanAn = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
+exports.getBanfromKhuVuc = async (req, res, next) => {
+  try {
+    const connection = await config.db.connect();
+    if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
+
+    dt = req.params.id;
+    const query = "SELECT b.* FROM qlqa.ban_an b, qlqa.khu_vuc kv where kv.KV_MA = b.KV_MA  and kv.KV_MA = ?";
+    const [rows] = await connection.promise().query(query, [dt]);
+    res.send(rows);
+
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send({ message: error.message });
+  }
+};
 
 
 exports.createBanAn = async (req, res, next) => {
@@ -767,9 +1229,10 @@ exports.createBanAn = async (req, res, next) => {
     const connection = await config.db.connect();
     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
 
-    const { B_STT, B_LOAIBAN, B_SOCHONGOI, B_TRANGTHAISUDUNG } = req.body;
-    const query = `INSERT INTO qlqa.ban_an (B_STT, B_LOAIBAN, B_SOCHONGOI, B_TRANGTHAISUDUNG) VALUES (?, ?, ?, ?)`;
-    await connection.promise().query(query, [B_STT, B_LOAIBAN, B_SOCHONGOI, B_TRANGTHAISUDUNG]);
+    const dt = req.body;
+    console.log("chào ",dt)
+    const query = "INSERT INTO qlqa.ban_an SET ?";
+    await connection.promise().query(query,dt);
 
     res.send({ message: 'Record added successfully' });
   } catch (error) {
@@ -801,6 +1264,7 @@ exports.deleteBanAn = async (req, res, next) => {
     if (!connection) throw new Error("Lỗi kết nối cơ sở dữ liệu");
 
     const  B_MA = req.params.id
+    console.log("a",B_MA)
     const query = `DELETE FROM qlqa.ban_an WHERE B_MA = ?`;
     await connection.promise().query(query, [B_MA]);
 

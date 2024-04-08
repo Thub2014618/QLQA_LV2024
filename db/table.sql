@@ -52,6 +52,7 @@ drop table if exists MON_AN;
 create TABLE  MON_AN (
    MA_MA                INT auto_increment,
    DM_MA                int                        not null,
+   MA_HINH				   text							null,
    MA_TEN               varchar(50)                    null,
    MA_MOTA              long varchar                   null,
    MA_TRANGTHAI  integer                        null,
@@ -68,32 +69,43 @@ alter table MON_AN
       on update restrict
       on delete restrict;
 
-create table KHU_VUC (
-   KV_MAKV              INT  auto_increment,
-   KV_TENKHUVUC         varchar(30)                    null,
-   constraint PK_KHU_VUC primary key clustered (KV_MAKV)
+CREATE TABLE GIA (
+   G_MA INT AUTO_INCREMENT,
+   MA_MA INT NOT NULL,
+   G_GIA FLOAT,
+   PRIMARY KEY (G_MA),
+   FOREIGN KEY (MA_MA) REFERENCES MON_AN(MA_MA)
 );
 
-create  table BAN_AN (
-   B_MA               INT auto_increment,
- --   KV_MAKV              int                        not null,
-   B_STT                integer                        null,
-   B_LOAIBAN            varchar(30)                    null,
-   B_SOCHONGOI          integer                        null,
-   B_TRANGTHAISUDUNG    integer                        null,
-   constraint PK_BAN_AN primary key clustered (B_MA)
+
+
+create table KHU_VUC (
+   KV_MA              INT  auto_increment,
+   KV_TENKHUVUC         varchar(30)                    null,
+   constraint PK_KHU_VUC primary key clustered (KV_MA)
 );
+
+CREATE TABLE BAN_AN (
+   B_MA               INT auto_increment,
+   KV_MA              INT NOT NULL,
+   B_STT              INTEGER UNIQUE NOT NULL,
+   B_LOAIBAN          VARCHAR(30),
+   B_SOCHONGOI        INTEGER,
+   B_TRANGTHAISUDUNG  INTEGER DEFAULT 0,
+   CONSTRAINT PK_BAN_AN PRIMARY KEY CLUSTERED (B_MA)
+);
+
 SHOW INDEX FROM BAN_AN;
 
 -- create index KHUVUC_BAN_FK on BAN_AN (
 -- KV_MAKV ASC
 -- );
 
--- alter table BAN_AN
---    add constraint FK_BAN_AN_KHUVUC_BA_KHU_VUC foreign key (KV_MAKV)
---       references KHU_VUC (KV_MAKV)
---       on update restrict
---       on delete restrict;
+alter table BAN_AN
+   add constraint FK_BAN_AN_KHUVUC_BA_KHU_VUC foreign key (KV_MA)
+      references KHU_VUC (KV_MA)
+      on update restrict
+      on delete restrict;
       
 drop table if exists NHAN_VIEN;
 CREATE TABLE NHAN_VIEN (
@@ -107,7 +119,7 @@ CREATE TABLE NHAN_VIEN (
     NV_MATKHAU VARCHAR(20),
     NV_EMAIL VARCHAR(200),
     NV_SDT VARCHAR(12),
-    NV_NGAYDANGKY DATE,
+    NV_NGAYDANGKY DATETIME DEFAULT NOW(),
     NV_LUONG NUMERIC(8,2),
     CONSTRAINT PK_NHAN_VIEN PRIMARY KEY CLUSTERED (NV_MA)
 );
@@ -143,16 +155,16 @@ create  table KHACH_HANG (
 
 drop table if exists HOA_DON;
 
-create table HOA_DON (
-   HD_MA              int               auto_increment         not null,
-   NV_MA              int                        not null,
-   KH_MA                int                        null,
-   B_MA               int                        not null,
-   HD_NGAYLAP           timestamp                      null,
-   HD_TONGTIEN          numeric(8,2)                   null,
-   HD_GHICHU            long varchar                   null,
-   HD_TRANGTHAI         smallint                       null,
-   constraint PK_HOA_DON primary key clustered (HD_MA)
+CREATE TABLE HOA_DON (
+   HD_MA              INT               AUTO_INCREMENT         NOT NULL,
+   NV_MA              INT                        NOT NULL,
+   KH_MA              INT                        NULL,
+   B_MA               INT                        NOT NULL,
+   HD_NGAYLAP         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   HD_TONGTIEN        FLOAT                  DEFAULT 0,
+   HD_GHICHU          LONG VARCHAR                   NULL,
+   HD_TRANGTHAI       SMALLINT                       DEFAULT 1,
+   CONSTRAINT PK_HOA_DON PRIMARY KEY CLUSTERED (HD_MA)
 );
 
 create index HOADON_BAN_FK on HOA_DON (
@@ -199,7 +211,7 @@ create  table CHI_TIET_HOA_DON (
    MA_MA                int                       not null,
    CTHD_SOLUONG         integer                        null,
    CTHD_GIA             numeric(8,2)                   null,
-   CTHD_TRANGTHAI       integer                        null,
+   CTHD_TRANGTHAI		 INTEGER						 DEFAULT 1,
    CTHD_GHICHU          varchar(200)                   null,
    constraint PK_CHI_TIET_HOA_DON primary key clustered (CTHD_MA)
 );
@@ -227,10 +239,11 @@ alter table CHI_TIET_HOA_DON
 ### CaLam ###
 
 drop table if exists NGAY_LAM;
-create table NGAY_LAM (
-   N_NGAYLAM            timestamp                    not null,
-   constraint PK_NGAY_LAM primary key clustered (N_NGAYLAM)
+CREATE TABLE NGAY_LAM (
+   N_NGAYLAM DATE NOT NULL,
+   CONSTRAINT PK_NGAY_LAM PRIMARY KEY CLUSTERED (N_NGAYLAM)
 );
+
 -- create unique clustered index NGAY_LAM_PK on NGAY_LAM (
 -- N_NGAYLAM ASC
 -- );
@@ -252,7 +265,7 @@ create table CHI_TIET_CA (
    CTC_MA               int             auto_increment           not null,
    CL_MA                int                        not null,
    NV_MA              int                        not null,
-   N_NGAYLAM            timestamp                      not null,
+   N_NGAYLAM            DATE                      not null,
    CTC_TRANGTHAI        integer                        null,
    constraint PK_CHI_TIET_CA primary key clustered (CTC_MA)
 );

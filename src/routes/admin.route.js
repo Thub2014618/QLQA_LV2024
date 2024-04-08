@@ -4,6 +4,9 @@ const admin = require("../controllers/admin.controller");
 const router = express.Router();
 
 
+router.route("/login")
+    .post(admin.loginAdmin)  
+
 router.route("/Quyen")
     .get(admin.getQuyen)  
     .post(admin.createQuyen);
@@ -15,7 +18,7 @@ router.route("/Quyen/:id")
 
 
 router.route("/VaiTro")
-    // .get(admin.getVaiTro)  
+    .get(admin.getVaiTro)  
     .post(admin.createVaiTro);
 
 router.route("/VaiTro/ma")
@@ -36,6 +39,16 @@ router.route("/CTQ/:id")
     .put(admin.updateCTQ)
     .delete(admin.deleteCTQ);
 
+
+router.route("/calam")
+    .get(admin.getCaLam)  
+    .post(admin.createCaLam);
+
+router.route("/lichlam")
+    .get(admin.getLichLam);
+
+router.route("/lichlam/:id")
+    .get(admin.getLich_NhanVien);
 
 router.route("/nhanvien")
     .get(admin.getNhanVien)  
@@ -77,35 +90,68 @@ router.route("/DanhMuc/:id")
 
 router.route("/HoaDon")
     .get(admin.getHoaDon)  
-    .post(admin.createHoaDon);    
+    .post(admin.createHoaDon); 
+
+router.route("/HoaDon/:id/tt")
+    .get(admin.checkTTHD);  
 
 router.route("/HoaDon/:id")
     .get(admin.getCTHD)  
     .put(admin.updateHoaDon)
     .delete(admin.deleteHoaDon);
 
+router.route("/hoadon/:id/off")
+    .put(admin.offHD);   
+
+router.route("/cthd/:id/off")
+    .put(admin.offCTHD);
+
 router.route("/CTHD")
-    // .get(admin.getCTHD)  
-    .post(admin.createCTHD);    
+    .get(admin.getMAHD)
+    .post(admin.createCTHD)
+    .put(admin.updateCTHD)
+    .delete(admin.deleteAllCTHD)
+
+
 
 router.route("/CTHD/:id")
-    // .get(admin.getCTHD)  
-    .put(admin.updateCTHD)
+    .get(admin.getCTHD_mahd)  
     .delete(admin.deleteCTHD);
 
 
-router.route("/BanAn")
+
+router.route("/khuvuc")
+    .get(admin.getKhuVuc)  
+    .post(admin.createKhuVuc);    
+
+router.route("/KVvsB/:id")
+    .get(admin.getBanfromKhuVuc)  
+
+router.route("/khuvuc/:id")
+    // .get(admin.editKhuVuc)  
+    .put(admin.updateKhuVuc)
+    .delete(admin.deleteKhuVuc)
+
+router.route("/Ban")
     .get(admin.getBanAn)  
     .post(admin.createBanAn);    
 
-router.route("/BanAn/:id")
+router.route("/Ban/:id")
     // .get(admin.getBanAn)  
     .put(admin.updateBanAn)
     .delete(admin.deleteBanAn);
 
-router.route("/khachhang")
-    .get(admin.getKhachHang)  
-    .post(admin.createKhachHang);    
+router.route("/Ban/:id/on")
+    .put(admin.onTTBan);
+
+router.route("/Ban/:id/off")
+    .put(admin.offTTBan);
+
+router.route("/Ban/:id/hd")
+    .get(admin.getHD_mab);
+
+    router.route("/Ban/:id/inforhd")
+    .get(admin.getInforHD_mab);
 
 router.route("/KhachHang/:id")
     // .get(admin.getKhachHang)  
